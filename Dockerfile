@@ -1,5 +1,5 @@
 # Используем официальный образ RunPod ComfyUI с CUDA 13.0 (идеально для RTX 5090 Blackwell)
-FROM runpod/comfyui:cuda13.0
+FROM runpod/comfyui:cuda12.8
 
 # Отключаем интерактивные диалоги apt-get
 ENV DEBIAN_FRONTEND=noninteractive
