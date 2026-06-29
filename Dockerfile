@@ -1,31 +1,23 @@
-# Используем чистый официальный образ NVIDIA с CUDA 12.4 и cuDNN
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+# Используем официальный образ RunPod ComfyUI с CUDA 13.0 (идеально для RTX 5090 Blackwell)
+FROM runpod/comfyui:cuda13.0
 
 # Отключаем интерактивные диалоги apt-get
 ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-# Обновляем систему и ставим базовые утилиты + Python 3.10
+# Обновляем систему и ставим только необходимые утилиты (Python и так уже есть в базовом образе)
 RUN apt-get update && apt-get install -y \
-    wget \
     curl \
     git \
     unzip \
     dos2unix \
     ffmpeg \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    python3 \
-    python3-pip \
-    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Делаем python3 командой по умолчанию для python
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
-# Ставим PyTorch 2.4+ (CUDA 12.4) и жестко фиксируем numpy<2, чтобы избежать крашей
-RUN pip3 install --no-cache-dir --upgrade torch torchvision torchaudio "numpy<2" --index-url https://download.pytorch.org/whl/cu124
+# НЕ устанавливаем PyTorch вручную! Базовый образ уже содержит идеальный PyTorch для 5090.
+# Просто фиксируем numpy<2, чтобы избежать крашей старых плагинов.
+RUN pip3 install --no-cache-dir "numpy<2"
 
 # Копируем список зависимостей
 COPY requirements.txt .
