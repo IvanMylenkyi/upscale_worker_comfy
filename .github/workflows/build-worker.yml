@@ -34,5 +34,5 @@ jobs:
           push: true
           tags: peeenguin/upscale_worker:latest
           
-          cache-from: type=registry,ref=peeenguin/upscale_worker:buildcache
-          cache-to: type=registry,ref=peeenguin/upscale_worker:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
