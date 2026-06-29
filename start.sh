@@ -23,7 +23,7 @@ if [ -d "$COMFYUI_DIR" ]; then
     # Устанавливаем зависимости для WAS Node Suite если он есть
     if [ -d "custom_nodes/was-node-suite-comfyui" ]; then
         echo "Installing WAS Node Suite dependencies..."
-        pip3 install sqlalchemy -r custom_nodes/was-node-suite-comfyui/requirements.txt || echo "WAS Node Suite requirements failed to install, but continuing..."
+        pip3 install sqlalchemy "numpy<2" -r custom_nodes/was-node-suite-comfyui/requirements.txt || echo "WAS Node Suite requirements failed to install, but continuing..."
     fi
 
     # Временно переименовываем venv, чтобы ComfyUI не пытался его использовать
@@ -45,7 +45,7 @@ fi
 echo "Waiting for ComfyUI to be ready..."
 
 ATTEMPTS=0
-MAX_ATTEMPTS=60 # Ждать максимум 2 минуты (60 * 2s)
+MAX_ATTEMPTS=300 # Ждать максимум 10 минут (300 * 2s)
 
 while ! curl -s --fail http://127.0.0.1:8188/system_stats > /dev/null; do
     ATTEMPTS=$((ATTEMPTS+1))
