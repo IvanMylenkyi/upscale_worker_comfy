@@ -1,5 +1,5 @@
 # Вы были абсолютно правы! Просто берем рабочий образ RunPod. Никаких ручных PyTorch!
-FROM runpod/comfyui:main
+FROM runpod/comfyui:cuda12.8
 
 WORKDIR /app
 
