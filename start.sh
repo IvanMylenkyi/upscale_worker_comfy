@@ -12,13 +12,9 @@ if [ -d "$COMFYUI_DIR" ]; then
     echo "Found ComfyUI directory at $COMFYUI_DIR, starting it in background..."
     cd $COMFYUI_DIR
 
-    # Устанавливаем зависимости для ComfyUI в ГЛОБАЛЬНОЕ окружение контейнера
-    if [ -f "requirements.txt" ]; then
-        echo "Installing ComfyUI dependencies into the global environment..."
-        # Используем глобальный pip3 и принудительно устанавливаем sqlalchemy
-        # Убрали --no-cache-dir, чтобы если под перезапускается, не качать всё заново (если кэш сохранился)
-        pip3 install sqlalchemy "numpy<2" -r requirements.txt || echo "Pip install failed, but continuing..."
-    fi
+    # Мы больше НЕ устанавливаем requirements.txt для ComfyUI, потому что базовый образ runpod/comfyui:main уже содержит их все.
+    # Если мы запустим pip install -r requirements.txt, pip может случайно сломать идеальный PyTorch от RunPod.
+    echo "Using pre-installed ComfyUI environment from runpod/comfyui:main"
 
     # Устанавливаем зависимости для WAS Node Suite если он есть
     if [ -d "custom_nodes/was-node-suite-comfyui" ]; then
