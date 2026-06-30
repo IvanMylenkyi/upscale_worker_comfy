@@ -13,8 +13,8 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY upscale_api.py .
 COPY start.sh .
 
-# Делаем скрипт исполняемым
-RUN chmod +x start.sh
+# Делаем скрипт исполняемым и чистим виндовые переносы строк (\r)
+RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
 
 # Открываем порты API и Comfy
 EXPOSE 8000 8188
