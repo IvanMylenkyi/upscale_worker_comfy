@@ -23,6 +23,14 @@ if [ -d "$COMFYUI_DIR" ]; then
         echo "Warning: VENV_DIR not found, using system python"
     fi
 
+    # Устанавливаем зависимости для WAS Node Suite (в частности numba), которых не хватает в вашем venv
+    echo "Checking WAS Node Suite requirements..."
+    if [ -f "custom_nodes/was-node-suite-comfyui/requirements.txt" ]; then
+        pip install -r custom_nodes/was-node-suite-comfyui/requirements.txt
+    else
+        pip install numba
+    fi
+
     echo "Starting ComfyUI..."
     python -u main.py --listen 0.0.0.0 --port 8188 > /comfyui.log 2>&1 &
 
