@@ -10,15 +10,16 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Копируем скрипты воркера
-COPY upscale_api.py .
-COPY start.sh .
+COPY upscale_api.py /app/upscale_api.py
 
-# Делаем скрипт исполняемым и чистим виндовые переносы строк (\r)
-RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
+# КРИТИЧЕСКИ ВАЖНО: Мы ДОЛЖНЫ перезаписать системный /start.sh от RunPod!
+# Иначе RunPod запустит свой скрипт, проигнорирует наши аргументы и запустит Jupyter/Filebrowser
+COPY start.sh /start.sh
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
 
 # Открываем порты API и Comfy
 EXPOSE 8000 8188
 
-CMD ["./start.sh"]
-
+# Запускаем наш переопределенный скрипт
+CMD ["/start.sh"]
 
