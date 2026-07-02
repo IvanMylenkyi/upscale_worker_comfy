@@ -12,7 +12,15 @@ if [ -d "$COMFYUI_DIR" ]; then
     echo "Found ComfyUI directory at $COMFYUI_DIR"
     cd $COMFYUI_DIR
 
-    # АКТИВИРУЕМ ВАШ СОБСТВЕННЫЙ VENV! (Я убрал код, который переименовывал/игнорировал ваши venv)
+    # КРИТИЧЕСКИ ВАЖНО: Устанавливаем тяжелые зависимости ГЛОБАЛЬНО (на быстрый локальный диск контейнера)
+    # Это занимает 5 секунд. Если ставить их внутрь venv (на сетевой диск), установка зависает на 15+ минут из-за низкой скорости записи мелких файлов.
+    # Так как ваш venv использует системные пакеты, он их моментально подхватит!
+    echo "Installing WAS Node Suite requirements to fast local disk..."
+    set +e
+    pip install numba scipy imageio scikit-image rembg fairscale timm
+    set -e
+
+    # АКТИВИРУЕМ ВАШ СОБСТВЕННЫЙ VENV!
     if [ -d "$VENV_DIR" ]; then
         source "$VENV_DIR/bin/activate"
         echo "Activated user's venv: $VENV_DIR"
@@ -22,17 +30,6 @@ if [ -d "$COMFYUI_DIR" ]; then
     else
         echo "Warning: VENV_DIR not found, using system python"
     fi
-
-    # Устанавливаем зависимости для WAS Node Suite (в частности numba), которых не хватает в вашем venv
-    echo "Checking WAS Node Suite requirements..."
-    set +e # Отключаем краш при ошибке, потому что pip может ругаться на глобальный numpy
-    if [ -f "custom_nodes/was-node-suite-comfyui/requirements.txt" ]; then
-        pip install -r custom_nodes/was-node-suite-comfyui/requirements.txt || \
-        pip install numba scipy imageio scikit-image rembg
-    else
-        pip install numba scipy imageio scikit-image rembg
-    fi
-    set -e # Включаем обратно
 
     echo "Starting ComfyUI..."
     python -u main.py --listen 0.0.0.0 --port 8188 > /comfyui.log 2>&1 &
