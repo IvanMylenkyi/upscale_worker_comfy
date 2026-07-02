@@ -63,6 +63,30 @@ def upload_file(file_path, put_url):
         raise Exception(f"Failed to upload: {r.status_code} {r.text}")
     print(f"[Worker] Uploaded successfully.")
 
+def strip_metadata(source_dir):
+    try:
+        from PIL import Image, PngImagePlugin
+        print("[Worker] Stripping metadata from output images...")
+        for root, _, files in os.walk(source_dir):
+            for file in files:
+                if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.bmp')):
+                    file_path = os.path.join(root, file)
+                    try:
+                        with Image.open(file_path) as img:
+                            if file.lower().endswith('.png'):
+                                meta = PngImagePlugin.PngInfo()
+                                img.save(file_path, "PNG", pnginfo=meta)
+                            elif file.lower().endswith(('.jpg', '.jpeg')):
+                                img.save(file_path, "JPEG", quality=100)
+                            elif file.lower().endswith('.webp'):
+                                img.save(file_path, "WEBP", quality=100)
+                            else:
+                                img.save(file_path)
+                    except Exception as e:
+                        print(f"[Worker] Failed to strip metadata for {file}: {e}")
+    except ImportError:
+        print("[Worker] PIL not found, skipping metadata strip.")
+
 def send_webhook(webhook_url, payload):
     try:
         requests.post(webhook_url, json=payload, timeout=10)
@@ -132,6 +156,9 @@ def process_upscale_job(req: UpscaleRequest):
             
             send_progress(req.webhook_url, job_id, f"Processing image {i+1}/{actual_count} (Running workflow)...")
             wait_for_completion(prompt_id)
+        
+        send_progress(req.webhook_url, job_id, "Stripping metadata...")
+        strip_metadata(OUTPUT_DIR)
         
         send_progress(req.webhook_url, job_id, "Creating final ZIP archive...")
         create_zip(OUTPUT_DIR, out_zip_path)
