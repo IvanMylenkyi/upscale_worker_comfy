@@ -120,11 +120,17 @@ def process_upscale_job(req: UpscaleRequest):
             if '63' in req.workflow_json and 'inputs' in req.workflow_json['63']:
                 req.workflow_json['63']['inputs']['index'] = i
                 req.workflow_json['63']['inputs']['seed'] = random.randint(1, 1000000000)
+                req.workflow_json['63']['inputs']['path'] = INPUT_DIR
                 
             if '36' in req.workflow_json and 'inputs' in req.workflow_json['36']:
                 req.workflow_json['36']['inputs']['seed'] = random.randint(1, 1000000000)
                 
+            if '72' in req.workflow_json and 'inputs' in req.workflow_json['72']:
+                req.workflow_json['72']['inputs']['filename_prefix'] = f"upscale_output/upscale_{i}"
+                
             prompt_id = run_comfyui_workflow(req.workflow_json, client_id)
+            
+            send_progress(req.webhook_url, job_id, f"Processing image {i+1}/{actual_count} (Running workflow)...")
             wait_for_completion(prompt_id)
         
         send_progress(req.webhook_url, job_id, "Creating final ZIP archive...")
