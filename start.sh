@@ -25,11 +25,14 @@ if [ -d "$COMFYUI_DIR" ]; then
 
     # Устанавливаем зависимости для WAS Node Suite (в частности numba), которых не хватает в вашем venv
     echo "Checking WAS Node Suite requirements..."
+    set +e # Отключаем краш при ошибке, потому что pip может ругаться на глобальный numpy
     if [ -f "custom_nodes/was-node-suite-comfyui/requirements.txt" ]; then
-        pip install -r custom_nodes/was-node-suite-comfyui/requirements.txt
+        pip install -r custom_nodes/was-node-suite-comfyui/requirements.txt || \
+        pip install numba scipy imageio scikit-image rembg
     else
-        pip install numba
+        pip install numba scipy imageio scikit-image rembg
     fi
+    set -e # Включаем обратно
 
     echo "Starting ComfyUI..."
     python -u main.py --listen 0.0.0.0 --port 8188 > /comfyui.log 2>&1 &
