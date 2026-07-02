@@ -69,6 +69,9 @@ def send_webhook(webhook_url, payload):
     except Exception as e:
         print(f"[Worker] Webhook failed: {e}")
 
+def send_progress(webhook_url, job_id, message):
+    send_webhook(webhook_url, {"job_id": job_id, "status": "processing", "error": message})
+
 def run_comfyui_workflow(workflow_json, client_id):
     print("[Worker] Queuing workflow to ComfyUI...")
     payload = {"prompt": workflow_json, "client_id": client_id}
@@ -98,6 +101,7 @@ def process_upscale_job(req: UpscaleRequest):
     client_id = job_id
     
     try:
+        send_progress(req.webhook_url, job_id, "Downloading and preparing images...")
         ensure_dirs()
         download_file(req.input_zip_url, zip_path)
         extract_zip(zip_path, INPUT_DIR)
@@ -111,6 +115,7 @@ def process_upscale_job(req: UpscaleRequest):
             
         for i in range(actual_count):
             print(f"[Worker] Processing image {i+1}/{actual_count}...")
+            send_progress(req.webhook_url, job_id, f"Upscaling image {i+1} of {actual_count}...")
             
             if '63' in req.workflow_json and 'inputs' in req.workflow_json['63']:
                 req.workflow_json['63']['inputs']['index'] = i
@@ -122,6 +127,7 @@ def process_upscale_job(req: UpscaleRequest):
             prompt_id = run_comfyui_workflow(req.workflow_json, client_id)
             wait_for_completion(prompt_id)
         
+        send_progress(req.webhook_url, job_id, "Creating final ZIP archive...")
         create_zip(OUTPUT_DIR, out_zip_path)
         upload_file(out_zip_path, req.output_put_url)
         
